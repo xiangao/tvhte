@@ -82,7 +82,10 @@ t = 1, ..., T).</p></dd>
 
 
 <dt id="arg-t-">t0<a class="anchor" aria-label="anchor" href="#arg-t-"></a></dt>
-<dd><p>Treatment period (1-indexed, in <code>1:T</code>).</p></dd>
+<dd><p>Treatment period. Either a scalar (common timing) in <code>1:T</code>,
+<code>Inf</code> (entire sample never treated), or a length-N integer/numeric
+vector with per-unit cohorts. Use <code>Inf</code> entries for never-treated
+units in the staggered case.</p></dd>
 
 
 <dt id="arg-j">J<a class="anchor" aria-label="anchor" href="#arg-j"></a></dt>

@@ -42,7 +42,10 @@ simulate_tvhte(
 
 - t0:
 
-  Treatment period (1-indexed, in `1:T`).
+  Treatment period. Either a scalar (common timing) in `1:T`, `Inf`
+  (entire sample never treated), or a length-N integer/numeric vector
+  with per-unit cohorts. Use `Inf` entries for never-treated units in
+  the staggered case.
 
 - J:
 

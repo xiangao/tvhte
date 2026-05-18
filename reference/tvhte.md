@@ -31,7 +31,9 @@ tvhte(Y, Y0, t0, J, X = NULL, init = NULL, control = list(maxit = 500))
 
 - t0:
 
-  Treatment period (integer, in `1:T`).
+  Treatment period. Either a scalar (common timing) or a
+  length-`nrow(Y)` vector with per-unit cohorts (staggered). Use `Inf`
+  for never-treated units.
 
 - J:
 

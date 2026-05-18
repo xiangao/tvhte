@@ -87,7 +87,9 @@ Gaussian working assumption on lambda.</p>
 
 
 <dt id="arg-t-">t0<a class="anchor" aria-label="anchor" href="#arg-t-"></a></dt>
-<dd><p>Treatment period (integer, in <code>1:T</code>).</p></dd>
+<dd><p>Treatment period. Either a scalar (common timing) or a
+length-<code>nrow(Y)</code> vector with per-unit cohorts (staggered). Use
+<code>Inf</code> for never-treated units.</p></dd>
 
 
 <dt id="arg-j">J<a class="anchor" aria-label="anchor" href="#arg-j"></a></dt>
