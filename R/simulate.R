@@ -19,6 +19,10 @@
 #' @param mu_alpha,mu_delta0,sigma_alpha,sigma_delta0,cor_alpha_delta
 #'   Parameters of the Gaussian prior on `lambda_i = (alpha_i, delta_{i0})`.
 #' @param Y0_mean,Y0_sd Distribution of the baseline outcome `Y_{i,0}`.
+#' @param beta Optional numeric vector of length `K` of true coefficients on
+#'   strictly exogenous covariates. If supplied, an `N x T x K` array of
+#'   covariates is generated (standard normal by default) and added to the
+#'   outcome equation as `X_{it}'beta`. Default `NULL` (no covariates).
 #' @param seed Optional integer seed.
 #'
 #' @return A list with `Y` (an N x T matrix), `Y0` (length-N baseline
@@ -34,6 +38,7 @@ simulate_tvhte <- function(N = 500, T = 6, t0 = 3, J = 3,
                            sigma_alpha = 0.5, sigma_delta0 = 0.5,
                            cor_alpha_delta = 0,
                            Y0_mean = 0, Y0_sd = 1,
+                           beta = NULL,
                            seed = NULL) {
   if (!is.null(seed)) set.seed(seed)
   stopifnot(t0 >= 1, t0 <= T, J >= 0, J <= T - t0)
@@ -60,19 +65,28 @@ simulate_tvhte <- function(N = 500, T = 6, t0 = 3, J = 3,
   # Draw Y_{i,0}
   Y0 <- rnorm(N, mean = Y0_mean, sd = Y0_sd)
 
+  # Covariates (optional)
+  X <- NULL
+  if (!is.null(beta)) {
+    K <- length(beta)
+    X <- array(rnorm(N * T * K), dim = c(N, T, K))
+  }
+
   # Iterate forward
   Y <- matrix(NA_real_, N, T)
   for (t in 1:T) {
     Y_lag <- if (t == 1) Y0 else Y[, t - 1]
     trt <- if (t >= t0 && (t - t0) <= J) delta[, t - t0 + 1] else 0
-    Y[, t] <- rho_Y * Y_lag + alpha + trt + rnorm(N, sd = sigma_U)
+    x_eff <- if (!is.null(X)) as.numeric(matrix(X[, t, ], nrow = N) %*% beta) else 0
+    Y[, t] <- rho_Y * Y_lag + alpha + trt + x_eff + rnorm(N, sd = sigma_U)
   }
 
-  list(Y = Y, Y0 = Y0, t0 = t0, J = J,
+  list(Y = Y, Y0 = Y0, X = X, t0 = t0, J = J,
        lambda = lambda, delta = delta,
        params = list(rho_Y = rho_Y, rho_delta = rho_delta,
                      sigma_U = sigma_U, sigma_eps = sigma_eps,
                      mu_alpha = mu_alpha, mu_delta0 = mu_delta0,
                      sigma_alpha = sigma_alpha, sigma_delta0 = sigma_delta0,
-                     cor_alpha_delta = cor_alpha_delta))
+                     cor_alpha_delta = cor_alpha_delta,
+                     beta = beta))
 }

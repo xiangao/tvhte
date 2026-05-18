@@ -20,6 +20,7 @@ simulate_tvhte(
   cor_alpha_delta = 0,
   Y0_mean = 0,
   Y0_sd = 1,
+  beta = NULL,
   seed = NULL
 )
 }
@@ -42,6 +43,11 @@ t = 1, ..., T).}
 \item{mu_alpha, mu_delta0, sigma_alpha, sigma_delta0, cor_alpha_delta}{Parameters of the Gaussian prior on \verb{lambda_i = (alpha_i, delta_\{i0\})}.}
 
 \item{Y0_mean, Y0_sd}{Distribution of the baseline outcome \verb{Y_\{i,0\}}.}
+
+\item{beta}{Optional numeric vector of length \code{K} of true coefficients on
+strictly exogenous covariates. If supplied, an \verb{N x T x K} array of
+covariates is generated (standard normal by default) and added to the
+outcome equation as \verb{X_\{it\}'beta}. Default \code{NULL} (no covariates).}
 
 \item{seed}{Optional integer seed.}
 }

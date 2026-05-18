@@ -4,7 +4,7 @@
 \alias{tvhte}
 \title{Two-step TV-HTE estimator (Botosaru and Liu 2025)}
 \usage{
-tvhte(Y, Y0, t0, J, init = NULL, control = list(maxit = 500))
+tvhte(Y, Y0, t0, J, X = NULL, init = NULL, control = list(maxit = 500))
 }
 \arguments{
 \item{Y}{N x T matrix of post-baseline outcomes.}
@@ -14,6 +14,10 @@ tvhte(Y, Y0, t0, J, init = NULL, control = list(maxit = 500))
 \item{t0}{Treatment period (integer, in \code{1:T}).}
 
 \item{J}{Maximum event time observed in-window (in \code{0:(T - t0)}).}
+
+\item{X}{Optional \verb{N x T x K} array of strictly exogenous covariates. If
+supplied, the model adds \verb{X_\{it\}'beta} to the outcome equation and
+estimates \code{beta} jointly with the other parameters.}
 
 \item{init}{Optional named list of starting values for the optimizer
 (overrides any of the defaults computed from the data).}

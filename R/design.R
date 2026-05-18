@@ -53,14 +53,17 @@
        AMc = AMc, A1 = A1, AMW = AMW)
 }
 
-# Per-unit marginal mean and covariance of Y_i given Y_{i0}.
-# `prior` carries the (unconditional in Phase 1) Gaussian on lambda_i.
-.unit_moments <- function(ds, Y0, theta, prior) {
+# Per-unit marginal mean and covariance of Y_i given Y_{i0} (and X_i).
+# `prior` carries the Gaussian on lambda_i. `Xi_beta`, when supplied, is
+# the T-vector A %*% X_i %*% beta -- pre-multiplied so the caller can
+# cache it across iterations of optim.
+.unit_moments <- function(ds, Y0, theta, prior, Xi_beta = NULL) {
   T <- length(ds$A1)
 
   mu_Y <- theta$rho_Y * (ds$A %*% ds$r) * Y0 +
           ds$A1  * prior$mu_alpha +
           ds$AMc * prior$mu_delta0
+  if (!is.null(Xi_beta)) mu_Y <- mu_Y + Xi_beta
 
   S_alpha <- prior$sigma_alpha2
   S_delt0 <- prior$sigma_delta0_2

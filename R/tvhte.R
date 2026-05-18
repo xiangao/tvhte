@@ -17,6 +17,9 @@
 #' @param Y0 Length-N vector of baseline outcomes `Y_{i,0}`.
 #' @param t0 Treatment period (integer, in `1:T`).
 #' @param J Maximum event time observed in-window (in `0:(T - t0)`).
+#' @param X Optional `N x T x K` array of strictly exogenous covariates. If
+#'   supplied, the model adds `X_{it}'beta` to the outcome equation and
+#'   estimates `beta` jointly with the other parameters.
 #' @param init Optional named list of starting values for the optimizer
 #'   (overrides any of the defaults computed from the data).
 #' @param control Passed to `optim`.
@@ -39,13 +42,20 @@
 #' Treatment Effects in Event Studies." arXiv:2509.13698.
 #'
 #' @export
-tvhte <- function(Y, Y0, t0, J, init = NULL,
+tvhte <- function(Y, Y0, t0, J, X = NULL, init = NULL,
                   control = list(maxit = 500)) {
 
   if (!is.matrix(Y)) stop("tvhte: Y must be a matrix (N x T)")
   N <- nrow(Y); T <- ncol(Y)
   if (length(Y0) != N) stop("tvhte: Y0 length must equal nrow(Y)")
   stopifnot(t0 >= 1, t0 <= T, J >= 0, J <= T - t0)
+
+  K <- 0L
+  if (!is.null(X)) {
+    if (length(dim(X)) != 3 || dim(X)[1] != N || dim(X)[2] != T)
+      stop("tvhte: X must be an N x T x K array")
+    K <- dim(X)[3]
+  }
 
   # --- parameterisation ----------------------------------------------------
   # Internal vector (real-valued): unconstrained reparam of
@@ -64,6 +74,7 @@ tvhte <- function(Y, Y0, t0, J, init = NULL,
          log_sigma_delta0_2 = log(0.25 * var(as.vector(Y))),
          z_cor_alpha_delta = 0)
   }
+  beta_init <- if (!is.null(init$beta)) init$beta else rep(0, K)
   par_vec <- c(atanh(par_init$rho_Y),
                atanh(par_init$rho_delta),
                par_init$log_sigma_U2,
@@ -72,7 +83,8 @@ tvhte <- function(Y, Y0, t0, J, init = NULL,
                par_init$mu_delta0,
                par_init$log_sigma_alpha2,
                par_init$log_sigma_delta0_2,
-               par_init$z_cor_alpha_delta)
+               par_init$z_cor_alpha_delta,
+               beta_init)
 
   unpack <- function(p) {
     list(theta = list(rho_Y = tanh(p[1]),
@@ -84,19 +96,31 @@ tvhte <- function(Y, Y0, t0, J, init = NULL,
                       sigma_alpha2 = exp(p[7]),
                       sigma_delta0_2 = exp(p[8]),
                       cov_alpha_delta = tanh(p[9]) *
-                        sqrt(exp(p[7]) * exp(p[8]))))
+                        sqrt(exp(p[7]) * exp(p[8]))),
+         beta = if (K > 0) p[10:(9 + K)] else numeric(0))
   }
 
   # --- design (same for every unit under common timing) --------------------
   build_ds <- function(theta) .unit_design(T, t0, J, theta$rho_Y, theta$rho_delta)
 
+  # --- per-unit X %*% beta loadings, A %*% (X_i beta), recomputed only when
+  #     rho_Y or beta changes within optim. We keep it inside nll for clarity.
+  .unit_Xbeta <- function(ds, beta) {
+    if (K == 0) return(replicate(N, NULL, simplify = FALSE))
+    lapply(1:N, function(i) {
+      Xi <- matrix(X[i, , ], nrow = T)         # T x K
+      drop(ds$A %*% (Xi %*% beta))
+    })
+  }
+
   # --- negative log-likelihood ---------------------------------------------
   nll <- function(p) {
     par <- unpack(p)
     ds <- build_ds(par$theta)
+    XB <- .unit_Xbeta(ds, par$beta)
     ll <- 0
     for (i in 1:N) {
-      mom <- .unit_moments(ds, Y0[i], par$theta, par$prior)
+      mom <- .unit_moments(ds, Y0[i], par$theta, par$prior, Xi_beta = XB[[i]])
       ll_i <- .dmvnorm_log(Y[i, ], mom$mean, mom$cov)
       if (is.na(ll_i) || !is.finite(ll_i)) return(.Machine$double.xmax / 2)
       ll <- ll + ll_i
@@ -109,6 +133,7 @@ tvhte <- function(Y, Y0, t0, J, init = NULL,
 
   # --- step 2: posterior means of lambda_i ---------------------------------
   ds <- build_ds(par$theta)
+  XB <- .unit_Xbeta(ds, par$beta)
   Sigma_lambda <- matrix(c(par$prior$sigma_alpha2,
                            par$prior$cov_alpha_delta,
                            par$prior$cov_alpha_delta,
@@ -123,7 +148,7 @@ tvhte <- function(Y, Y0, t0, J, init = NULL,
 
   lambda_hat <- matrix(NA_real_, N, 2)
   for (i in 1:N) {
-    mom <- .unit_moments(ds, Y0[i], par$theta, par$prior)
+    mom <- .unit_moments(ds, Y0[i], par$theta, par$prior, Xi_beta = XB[[i]])
     inv_S_Y <- solve(mom$cov)
     lambda_hat[i, ] <- mu_lambda + Sigma_lY %*% inv_S_Y %*% (Y[i, ] - mom$mean)
   }
@@ -142,7 +167,7 @@ tvhte <- function(Y, Y0, t0, J, init = NULL,
     Sigma_epsY <- t(ds$AMW) * par$theta$sigma_eps2     # J x T
     eps_hat <- matrix(NA_real_, N, J)
     for (i in 1:N) {
-      mom <- .unit_moments(ds, Y0[i], par$theta, par$prior)
+      mom <- .unit_moments(ds, Y0[i], par$theta, par$prior, Xi_beta = XB[[i]])
       inv_S_Y <- solve(mom$cov)
       eps_hat[i, ] <- Sigma_epsY %*% inv_S_Y %*% (Y[i, ] - mom$mean)
     }
@@ -156,10 +181,10 @@ tvhte <- function(Y, Y0, t0, J, init = NULL,
   colnames(delta_path) <- paste0("delta_", 0:J)
 
   structure(
-    list(theta = par$theta, prior = par$prior,
+    list(theta = par$theta, prior = par$prior, beta = par$beta,
          loglik = -fit$value, convergence = fit$convergence,
          lambda_hat = lambda_hat, delta_path = delta_path,
-         t0 = t0, J = J, N = N, T = T,
+         t0 = t0, J = J, N = N, T = T, K = K,
          call = match.call()),
     class = "tvhte"
   )
@@ -187,6 +212,13 @@ print.tvhte <- function(x, digits = 4, ...) {
               format(x$prior$cov_alpha_delta /
                        sqrt(x$prior$sigma_alpha2 * x$prior$sigma_delta0_2),
                      digits = digits)))
+  if (length(x$beta) > 0) {
+    cat(sprintf("\nCovariate coefficients (beta):\n"))
+    cat(sprintf("  %s\n",
+                paste0("beta[", seq_along(x$beta), "] = ",
+                       format(x$beta, digits = digits),
+                       collapse = "   ")))
+  }
   cat(sprintf("\nMean posterior event-time effects (across units):\n"))
   cat(sprintf("  %s\n", paste(colnames(x$delta_path),
                               format(colMeans(x$delta_path), digits = digits),
