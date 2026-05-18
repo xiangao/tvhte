@@ -16,7 +16,7 @@ Gaussian working assumption on lambda.
 ## Usage
 
 ``` r
-tvhte(Y, Y0, t0, J, init = NULL, control = list(maxit = 500))
+tvhte(Y, Y0, t0, J, X = NULL, init = NULL, control = list(maxit = 500))
 ```
 
 ## Arguments
@@ -36,6 +36,12 @@ tvhte(Y, Y0, t0, J, init = NULL, control = list(maxit = 500))
 - J:
 
   Maximum event time observed in-window (in `0:(T - t0)`).
+
+- X:
+
+  Optional `N x T x K` array of strictly exogenous covariates. If
+  supplied, the model adds `X_{it}'beta` to the outcome equation and
+  estimates `beta` jointly with the other parameters.
 
 - init:
 

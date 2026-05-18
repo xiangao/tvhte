@@ -63,6 +63,7 @@ with <code>(alpha_i, delta_{i0})</code> jointly Gaussian.</p>
 <span>  cor_alpha_delta <span class="op">=</span> <span class="fl">0</span>,</span>
 <span>  Y0_mean <span class="op">=</span> <span class="fl">0</span>,</span>
 <span>  Y0_sd <span class="op">=</span> <span class="fl">1</span>,</span>
+<span>  beta <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  seed <span class="op">=</span> <span class="cn">NULL</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
@@ -106,6 +107,13 @@ t = 1, ..., T).</p></dd>
 
 <dt id="arg-y-mean-y-sd">Y0_mean, Y0_sd<a class="anchor" aria-label="anchor" href="#arg-y-mean-y-sd"></a></dt>
 <dd><p>Distribution of the baseline outcome <code>Y_{i,0}</code>.</p></dd>
+
+
+<dt id="arg-beta">beta<a class="anchor" aria-label="anchor" href="#arg-beta"></a></dt>
+<dd><p>Optional numeric vector of length <code>K</code> of true coefficients on
+strictly exogenous covariates. If supplied, an <code>N x T x K</code> array of
+covariates is generated (standard normal by default) and added to the
+outcome equation as <code>X_{it}'beta</code>. Default <code>NULL</code> (no covariates).</p></dd>
 
 
 <dt id="arg-seed">seed<a class="anchor" aria-label="anchor" href="#arg-seed"></a></dt>

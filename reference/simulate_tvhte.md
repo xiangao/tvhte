@@ -25,6 +25,7 @@ simulate_tvhte(
   cor_alpha_delta = 0,
   Y0_mean = 0,
   Y0_sd = 1,
+  beta = NULL,
   seed = NULL
 )
 ```
@@ -67,6 +68,13 @@ simulate_tvhte(
 - Y0_mean, Y0_sd:
 
   Distribution of the baseline outcome `Y_{i,0}`.
+
+- beta:
+
+  Optional numeric vector of length `K` of true coefficients on strictly
+  exogenous covariates. If supplied, an `N x T x K` array of covariates
+  is generated (standard normal by default) and added to the outcome
+  equation as `X_{it}'beta`. Default `NULL` (no covariates).
 
 - seed:
 
