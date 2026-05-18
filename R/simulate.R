@@ -11,7 +11,10 @@
 #' @param N Number of units.
 #' @param T Number of post-baseline periods (i.e. observations at
 #'   t = 1, ..., T).
-#' @param t0 Treatment period (1-indexed, in `1:T`).
+#' @param t0 Treatment period. Either a scalar (common timing) in `1:T`,
+#'   `Inf` (entire sample never treated), or a length-N integer/numeric
+#'   vector with per-unit cohorts. Use `Inf` entries for never-treated
+#'   units in the staggered case.
 #' @param J Maximum event time observed in-window.
 #' @param rho_Y Outcome AR(1) coefficient.
 #' @param rho_delta Event-time AR(1) coefficient.
@@ -41,7 +44,11 @@ simulate_tvhte <- function(N = 500, T = 6, t0 = 3, J = 3,
                            beta = NULL,
                            seed = NULL) {
   if (!is.null(seed)) set.seed(seed)
-  stopifnot(t0 >= 1, t0 <= T, J >= 0, J <= T - t0)
+  stopifnot(J >= 0)
+  if (length(t0) == 1) t0 <- rep(t0, N)
+  if (length(t0) != N) stop("simulate_tvhte: t0 must be scalar or length N")
+  if (any(is.finite(t0) & (t0 < 1 | t0 > T)))
+    stop("simulate_tvhte: finite t0 entries must be in 1:T")
 
   # Draw lambda_i = (alpha_i, delta_{i0}) jointly Gaussian
   Sigma_lambda <- matrix(c(sigma_alpha^2,
@@ -72,11 +79,16 @@ simulate_tvhte <- function(N = 500, T = 6, t0 = 3, J = 3,
     X <- array(rnorm(N * T * K), dim = c(N, T, K))
   }
 
-  # Iterate forward
+  # Iterate forward; treatment now per-unit (each unit's own t0_i)
   Y <- matrix(NA_real_, N, T)
   for (t in 1:T) {
     Y_lag <- if (t == 1) Y0 else Y[, t - 1]
-    trt <- if (t >= t0 && (t - t0) <= J) delta[, t - t0 + 1] else 0
+    j_i <- t - t0                                # vector of event times
+    in_window <- is.finite(j_i) & j_i >= 0 & j_i <= J
+    trt <- numeric(N)
+    if (any(in_window))
+      trt[in_window] <- delta[cbind(which(in_window),
+                                    j_i[in_window] + 1)]
     x_eff <- if (!is.null(X)) as.numeric(matrix(X[, t, ], nrow = N) %*% beta) else 0
     Y[, t] <- rho_Y * Y_lag + alpha + trt + x_eff + rnorm(N, sd = sigma_U)
   }

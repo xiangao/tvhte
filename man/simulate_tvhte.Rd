@@ -30,7 +30,10 @@ simulate_tvhte(
 \item{T}{Number of post-baseline periods (i.e. observations at
 t = 1, ..., T).}
 
-\item{t0}{Treatment period (1-indexed, in \code{1:T}).}
+\item{t0}{Treatment period. Either a scalar (common timing) in \code{1:T},
+\code{Inf} (entire sample never treated), or a length-N integer/numeric
+vector with per-unit cohorts. Use \code{Inf} entries for never-treated
+units in the staggered case.}
 
 \item{J}{Maximum event time observed in-window.}
 

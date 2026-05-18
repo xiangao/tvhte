@@ -15,7 +15,9 @@
 #'
 #' @param Y N x T matrix of post-baseline outcomes.
 #' @param Y0 Length-N vector of baseline outcomes `Y_{i,0}`.
-#' @param t0 Treatment period (integer, in `1:T`).
+#' @param t0 Treatment period. Either a scalar (common timing) or a
+#'   length-`nrow(Y)` vector with per-unit cohorts (staggered). Use
+#'   `Inf` for never-treated units.
 #' @param J Maximum event time observed in-window (in `0:(T - t0)`).
 #' @param X Optional `N x T x K` array of strictly exogenous covariates. If
 #'   supplied, the model adds `X_{it}'beta` to the outcome equation and
@@ -48,7 +50,11 @@ tvhte <- function(Y, Y0, t0, J, X = NULL, init = NULL,
   if (!is.matrix(Y)) stop("tvhte: Y must be a matrix (N x T)")
   N <- nrow(Y); T <- ncol(Y)
   if (length(Y0) != N) stop("tvhte: Y0 length must equal nrow(Y)")
-  stopifnot(t0 >= 1, t0 <= T, J >= 0, J <= T - t0)
+  stopifnot(J >= 0)
+  if (length(t0) == 1) t0 <- rep(t0, N)
+  if (length(t0) != N) stop("tvhte: t0 must be scalar or length N")
+  if (any(is.finite(t0) & (t0 < 1 | t0 > T)))
+    stop("tvhte: finite t0 entries must be in 1:T")
 
   K <- 0L
   if (!is.null(X)) {
@@ -100,27 +106,40 @@ tvhte <- function(Y, Y0, t0, J, X = NULL, init = NULL,
          beta = if (K > 0) p[10:(9 + K)] else numeric(0))
   }
 
-  # --- design (same for every unit under common timing) --------------------
-  build_ds <- function(theta) .unit_design(T, t0, J, theta$rho_Y, theta$rho_delta)
+  # --- design caches: one per unique cohort (treats Inf as never-treated) -
+  unique_t0 <- unique(t0)
+  build_ds <- function(theta) {
+    # Returns list keyed by t0 value (as character) -> design list.
+    out <- list()
+    for (t0_val in unique_t0) {
+      out[[as.character(t0_val)]] <-
+        .unit_design(T, t0_val, J, theta$rho_Y, theta$rho_delta)
+    }
+    out
+  }
+  # Map each unit i -> name of its design entry
+  t0_key <- as.character(t0)
 
-  # --- per-unit X %*% beta loadings, A %*% (X_i beta), recomputed only when
-  #     rho_Y or beta changes within optim. We keep it inside nll for clarity.
-  .unit_Xbeta <- function(ds, beta) {
+  # --- per-unit X %*% beta loadings, A %*% (X_i beta). A depends only on
+  #     rho_Y so is the same across cohorts; we reuse the first design.
+  .unit_Xbeta <- function(ds_list, beta) {
     if (K == 0) return(replicate(N, NULL, simplify = FALSE))
+    A <- ds_list[[1]]$A
     lapply(1:N, function(i) {
-      Xi <- matrix(X[i, , ], nrow = T)         # T x K
-      drop(ds$A %*% (Xi %*% beta))
+      Xi <- matrix(X[i, , ], nrow = T)
+      drop(A %*% (Xi %*% beta))
     })
   }
 
   # --- negative log-likelihood ---------------------------------------------
   nll <- function(p) {
     par <- unpack(p)
-    ds <- build_ds(par$theta)
-    XB <- .unit_Xbeta(ds, par$beta)
+    ds_list <- build_ds(par$theta)
+    XB <- .unit_Xbeta(ds_list, par$beta)
     ll <- 0
     for (i in 1:N) {
-      mom <- .unit_moments(ds, Y0[i], par$theta, par$prior, Xi_beta = XB[[i]])
+      mom <- .unit_moments(ds_list[[t0_key[i]]], Y0[i],
+                           par$theta, par$prior, Xi_beta = XB[[i]])
       ll_i <- .dmvnorm_log(Y[i, ], mom$mean, mom$cov)
       if (is.na(ll_i) || !is.finite(ll_i)) return(.Machine$double.xmax / 2)
       ll <- ll + ll_i
@@ -132,25 +151,24 @@ tvhte <- function(Y, Y0, t0, J, X = NULL, init = NULL,
   par <- unpack(fit$par)
 
   # --- step 2: posterior means of lambda_i ---------------------------------
-  ds <- build_ds(par$theta)
-  XB <- .unit_Xbeta(ds, par$beta)
-  Sigma_lambda <- matrix(c(par$prior$sigma_alpha2,
-                           par$prior$cov_alpha_delta,
-                           par$prior$cov_alpha_delta,
-                           par$prior$sigma_delta0_2), 2, 2)
+  ds_list <- build_ds(par$theta)
+  XB <- .unit_Xbeta(ds_list, par$beta)
   mu_lambda <- c(par$prior$mu_alpha, par$prior$mu_delta0)
 
-  # Cross-covariance between (alpha_i, delta_{i0}) and Y_i (constant across i)
-  Sigma_lY <- rbind(
-    ds$A1  * par$prior$sigma_alpha2 + ds$AMc * par$prior$cov_alpha_delta,
+  # Cross-covariance Sigma_{lambda, Y_i} depends on the unit's cohort
+  # (through AMc). Precompute per unique cohort.
+  Sigma_lY_by_t0 <- lapply(ds_list, function(ds) rbind(
+    ds$A1  * par$prior$sigma_alpha2  + ds$AMc * par$prior$cov_alpha_delta,
     ds$A1  * par$prior$cov_alpha_delta + ds$AMc * par$prior$sigma_delta0_2
-  )
+  ))
 
   lambda_hat <- matrix(NA_real_, N, 2)
   for (i in 1:N) {
-    mom <- .unit_moments(ds, Y0[i], par$theta, par$prior, Xi_beta = XB[[i]])
+    ds_i <- ds_list[[t0_key[i]]]
+    mom <- .unit_moments(ds_i, Y0[i], par$theta, par$prior, Xi_beta = XB[[i]])
     inv_S_Y <- solve(mom$cov)
-    lambda_hat[i, ] <- mu_lambda + Sigma_lY %*% inv_S_Y %*% (Y[i, ] - mom$mean)
+    lambda_hat[i, ] <- mu_lambda +
+      Sigma_lY_by_t0[[t0_key[i]]] %*% inv_S_Y %*% (Y[i, ] - mom$mean)
   }
   colnames(lambda_hat) <- c("alpha", "delta0")
 
@@ -162,14 +180,17 @@ tvhte <- function(Y, Y0, t0, J, X = NULL, init = NULL,
   delta_path <- matrix(NA_real_, N, J + 1)
   delta_path[, 1] <- lambda_hat[, 2]   # E[delta_{i0} | data]
   if (J >= 1) {
-    # Cross-cov of eps_i (J x 1) with Y_i (T x 1): eps enters Y via AMW with
-    # variance sigma_eps2 * I_J, independent of alpha and delta0.
-    Sigma_epsY <- t(ds$AMW) * par$theta$sigma_eps2     # J x T
+    # Cross-cov of eps_i (J x 1) with Y_i (T x 1): per cohort because AMW
+    # depends on the unit's cohort.
+    Sigma_epsY_by_t0 <- lapply(ds_list,
+      function(ds) t(ds$AMW) * par$theta$sigma_eps2)
     eps_hat <- matrix(NA_real_, N, J)
     for (i in 1:N) {
-      mom <- .unit_moments(ds, Y0[i], par$theta, par$prior, Xi_beta = XB[[i]])
+      ds_i <- ds_list[[t0_key[i]]]
+      mom <- .unit_moments(ds_i, Y0[i], par$theta, par$prior, Xi_beta = XB[[i]])
       inv_S_Y <- solve(mom$cov)
-      eps_hat[i, ] <- Sigma_epsY %*% inv_S_Y %*% (Y[i, ] - mom$mean)
+      eps_hat[i, ] <- Sigma_epsY_by_t0[[t0_key[i]]] %*%
+        inv_S_Y %*% (Y[i, ] - mom$mean)
     }
     # delta_{i,j} = rho_delta^j * delta_{i0} + sum_{k=1}^j rho_delta^{j-k} eps_{i,k}
     rho_d <- par$theta$rho_delta
@@ -185,6 +206,7 @@ tvhte <- function(Y, Y0, t0, J, X = NULL, init = NULL,
          loglik = -fit$value, convergence = fit$convergence,
          lambda_hat = lambda_hat, delta_path = delta_path,
          t0 = t0, J = J, N = N, T = T, K = K,
+         cohort_counts = table(t0),
          call = match.call()),
     class = "tvhte"
   )
@@ -193,8 +215,14 @@ tvhte <- function(Y, Y0, t0, J, X = NULL, init = NULL,
 #' @export
 print.tvhte <- function(x, digits = 4, ...) {
   cat("Time-Varying Heterogeneous Treatment Effects (Botosaru-Liu 2025)\n")
-  cat(sprintf("  N = %d units; T = %d periods; t0 = %d; J = %d\n",
-              x$N, x$T, x$t0, x$J))
+  t0_str <- if (length(unique(x$t0)) == 1)
+    sprintf("t0 = %s", format(x$t0[1]))
+  else
+    paste0("staggered (", length(x$cohort_counts), " cohorts: ",
+           paste(names(x$cohort_counts), x$cohort_counts,
+                 sep = ":n=", collapse = ", "), ")")
+  cat(sprintf("  N = %d units; T = %d periods; %s; J = %d\n",
+              x$N, x$T, t0_str, x$J))
   cat(sprintf("  log-likelihood = %.3f   convergence = %d\n\n",
               x$loglik, x$convergence))
   cat("Common parameters (theta):\n")

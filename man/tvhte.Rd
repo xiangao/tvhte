@@ -11,7 +11,9 @@ tvhte(Y, Y0, t0, J, X = NULL, init = NULL, control = list(maxit = 500))
 
 \item{Y0}{Length-N vector of baseline outcomes \verb{Y_\{i,0\}}.}
 
-\item{t0}{Treatment period (integer, in \code{1:T}).}
+\item{t0}{Treatment period. Either a scalar (common timing) or a
+length-\code{nrow(Y)} vector with per-unit cohorts (staggered). Use
+\code{Inf} for never-treated units.}
 
 \item{J}{Maximum event time observed in-window (in \code{0:(T - t0)}).}
 
