@@ -1,0 +1,31 @@
+Package: tvhte
+Title: Time-Varying Heterogeneous Treatment Effects in Event Studies
+Version: 0.0.1
+Authors@R: person("Xiang", "Ao", email = "xiangao@gmail.com", role = c("aut", "cre"))
+Description: Two-step semiparametric estimator for event studies with
+    persistent outcomes and unit-level heterogeneous, dynamic treatment
+    effects, following Botosaru and Liu (2025). Imposes an autoregressive
+    structure on event-time effects to keep dimensionality manageable.
+    First step: quasi-maximum-likelihood for common parameters under a
+    Gaussian working assumption on the random coefficients. Second step:
+    empirical Bayes (Tweedie / Gaussian conjugacy) for unit-specific
+    treatment trajectories. A separate option implements the homogeneous
+    feedback extension of Botosaru and Liu (2026), which decomposes
+    dynamic responses into direct and indirect (covariate-adjustment)
+    components.
+License: MIT + file LICENSE
+Encoding: UTF-8
+Roxygen: list(markdown = TRUE)
+Depends:
+    R (>= 4.1)
+Imports:
+    stats
+Suggests:
+    testthat (>= 3.0.0),
+    knitr,
+    rmarkdown
+VignetteBuilder: knitr
+Config/testthat/edition: 3
+URL: https://xiangao.github.io/tvhte/, https://github.com/xiangao/tvhte
+BugReports: https://github.com/xiangao/tvhte/issues
+Config/roxygen2/version: 8.0.0
