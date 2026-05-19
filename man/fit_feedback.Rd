@@ -40,6 +40,17 @@ with one lag of \code{Y} and one lag of \code{X}:
 \deqn{X_{it} = \gamma_0 + \gamma_Y Y_{i,t-1} + \gamma_X X_{i,t-1} + \eta_{it}.}
 Fit by pooled OLS across unit-time observations with \code{t >= 2}.
 }
+\examples{
+# Simulate from a model with covariate feedback, then estimate it back.
+sim <- simulate_tvhte(N = 300, T = 6, t0 = 3, J = 2,
+                      beta = 0.4,
+                      feedback_gamma = c(0.2, 0.3, 0.5, 0.4),
+                      seed = 51)
+fb <- fit_feedback(sim$Y, sim$Y0, sim$X, sim$X0)
+print(fb)
+fb$coef
+
+}
 \references{
 Botosaru, Irene and Laura Liu (2026). "Event Studies with Feedback."
 AEA Papers and Proceedings 116: 70-74.

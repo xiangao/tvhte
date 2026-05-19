@@ -78,3 +78,23 @@ with \verb{(alpha_i, delta_\{i0\})} jointly Gaussian.
 All units share a common treatment period \code{t0} and event-time window
 \code{0:J} (Phase 1 scope).
 }
+\examples{
+# Common adoption timing
+sim <- simulate_tvhte(N = 200, T = 5, t0 = 3, J = 2,
+                      rho_Y = 0.4, rho_delta = 0.6, seed = 1)
+dim(sim$Y); head(sim$Y0)
+
+# Staggered adoption with Inf marking never-treated units
+set.seed(2)
+cohorts <- sample(c(3, 5, Inf), 200, replace = TRUE)
+sim2 <- simulate_tvhte(N = 200, T = 7, t0 = cohorts, J = 2, seed = 2)
+table(sim2$t0)
+
+# With a covariate that evolves endogenously (Botosaru-Liu 2026 feedback)
+sim3 <- simulate_tvhte(N = 200, T = 5, t0 = 3, J = 2,
+                       beta = 0.4,
+                       feedback_gamma = c(0.2, 0.3, 0.5, 0.4),
+                       seed = 3)
+head(sim3$X[, , 1])
+
+}

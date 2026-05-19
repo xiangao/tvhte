@@ -31,6 +31,16 @@
 #' Botosaru, Irene and Laura Liu (2026). "Event Studies with Feedback."
 #' AEA Papers and Proceedings 116: 70-74.
 #'
+#' @examples
+#' # Simulate from a model with covariate feedback, then estimate it back.
+#' sim <- simulate_tvhte(N = 300, T = 6, t0 = 3, J = 2,
+#'                       beta = 0.4,
+#'                       feedback_gamma = c(0.2, 0.3, 0.5, 0.4),
+#'                       seed = 51)
+#' fb <- fit_feedback(sim$Y, sim$Y0, sim$X, sim$X0)
+#' print(fb)
+#' fb$coef
+#'
 #' @export
 fit_feedback <- function(Y, Y0, X, X0) {
   if (length(dim(X)) != 3 || dim(X)[3] != 1L)
@@ -96,6 +106,20 @@ print.tvhte_feedback <- function(x, digits = 4, ...) {
 #' @return A list with `Y` (`N_star x T` matrix of counterfactual
 #'   outcomes), `X` (`N_star x T x 1` array), and `lambda` (`N_star x 2`
 #'   matrix of drawn latent effects).
+#'
+#' @examples
+#' # Fit the model, fit the feedback, then simulate counterfactual paths
+#' # under shifted treatment timing.
+#' sim <- simulate_tvhte(N = 300, T = 6, t0 = 3, J = 2, beta = 0.4,
+#'                       feedback_gamma = c(0.2, 0.3, 0.5, 0.4), seed = 1)
+#' fit <- tvhte(sim$Y, sim$Y0, t0 = sim$t0, J = sim$J, X = sim$X,
+#'              compute_se = FALSE)
+#' fb  <- fit_feedback(sim$Y, sim$Y0, sim$X, sim$X0)
+#'
+#' # Counterfactual: treatment delayed from t=3 to t=5
+#' cf <- simulate_counterfactual(fit, fb, t0_star = 5,
+#'                                N_star = 200, seed = 99)
+#' colMeans(cf$Y)   # average counterfactual outcome path
 #'
 #' @export
 simulate_counterfactual <- function(fit, fit_fb, t0_star,

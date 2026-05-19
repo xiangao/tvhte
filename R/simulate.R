@@ -39,6 +39,25 @@
 #'   and delta_{i0}), and `delta` (N x (J+1) matrix of true event-time
 #'   effects).
 #'
+#' @examples
+#' # Common adoption timing
+#' sim <- simulate_tvhte(N = 200, T = 5, t0 = 3, J = 2,
+#'                       rho_Y = 0.4, rho_delta = 0.6, seed = 1)
+#' dim(sim$Y); head(sim$Y0)
+#'
+#' # Staggered adoption with Inf marking never-treated units
+#' set.seed(2)
+#' cohorts <- sample(c(3, 5, Inf), 200, replace = TRUE)
+#' sim2 <- simulate_tvhte(N = 200, T = 7, t0 = cohorts, J = 2, seed = 2)
+#' table(sim2$t0)
+#'
+#' # With a covariate that evolves endogenously (Botosaru-Liu 2026 feedback)
+#' sim3 <- simulate_tvhte(N = 200, T = 5, t0 = 3, J = 2,
+#'                        beta = 0.4,
+#'                        feedback_gamma = c(0.2, 0.3, 0.5, 0.4),
+#'                        seed = 3)
+#' head(sim3$X[, , 1])
+#'
 #' @export
 simulate_tvhte <- function(N = 500, T = 6, t0 = 3, J = 3,
                            rho_Y = 0.5, rho_delta = 0.7,
