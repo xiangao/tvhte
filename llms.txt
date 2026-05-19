@@ -76,10 +76,16 @@ Full documentation: **<https://xiangao.github.io/tvhte/>**
 | Page | Description |
 |----|----|
 | [Home](https://xiangao.github.io/tvhte/) | Overview, install, motivation |
-| [Reference](https://xiangao.github.io/tvhte/reference/index.html) | Function reference |
+| [Illustrative vignette](https://xiangao.github.io/tvhte/articles/illustrative.html) | End-to-end walk-through: simulate, fit, posterior trajectories, counterfactual direct/indirect decomposition, with plots |
+| [`tvhte()`](https://xiangao.github.io/tvhte/reference/tvhte.html) | Main estimator (QMLE + Tweedie EB). Runnable examples: common adoption, with covariate, staggered with never-treated |
+| [`simulate_tvhte()`](https://xiangao.github.io/tvhte/reference/simulate_tvhte.html) | Data generator (vanilla DGP and feedback DGP) |
+| [`fit_feedback()`](https://xiangao.github.io/tvhte/reference/fit_feedback.html) | Botosaru-Liu 2026 homogeneous-feedback estimator |
+| [`simulate_counterfactual()`](https://xiangao.github.io/tvhte/reference/simulate_counterfactual.html) | Algorithm 1 of BL 2026: joint counterfactual `(Y*, X*)` |
+| [Reference index](https://xiangao.github.io/tvhte/reference/index.html) | All functions on one page |
 
-A Julia port (`TVHTE.jl`) and a Great Recession replication vignette are
-planned.
+A Julia port is available at
+[TVHTE.jl](https://github.com/xiangao/TVHTE.jl)
+([docs](https://xiangao.github.io/TVHTE.jl/)).
 
 ## References
 
