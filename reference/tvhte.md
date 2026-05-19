@@ -16,7 +16,16 @@ Gaussian working assumption on lambda.
 ## Usage
 
 ``` r
-tvhte(Y, Y0, t0, J, X = NULL, init = NULL, control = list(maxit = 500))
+tvhte(
+  Y,
+  Y0,
+  t0,
+  J,
+  X = NULL,
+  init = NULL,
+  control = list(maxit = 500),
+  compute_se = TRUE
+)
 ```
 
 ## Arguments

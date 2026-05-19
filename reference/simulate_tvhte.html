@@ -22,6 +22,7 @@ with (alpha_i, delta_{i0}) jointly Gaussian."></head><body>
 
     <div id="navbar" class="collapse navbar-collapse ms-3">
       <ul class="navbar-nav me-auto"><li class="active nav-item"><a class="nav-link" href="../reference/index.html">Reference</a></li>
+<li class="nav-item"><a class="nav-link" href="../articles/index.html">Articles</a></li>
       </ul><ul class="navbar-nav"><li class="nav-item"><form class="form-inline" role="search">
  <input class="form-control" type="search" name="search-input" id="search-input" autocomplete="off" aria-label="Search site" placeholder="Search for" data-search-index="../search.json"></form></li>
 <li class="nav-item"><a class="external-link nav-link" href="https://github.com/xiangao/tvhte/" aria-label="GitHub"><span class="fa fab fa-github fa-lg"></span></a></li>
@@ -64,6 +65,7 @@ with <code>(alpha_i, delta_{i0})</code> jointly Gaussian.</p>
 <span>  Y0_mean <span class="op">=</span> <span class="fl">0</span>,</span>
 <span>  Y0_sd <span class="op">=</span> <span class="fl">1</span>,</span>
 <span>  beta <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  feedback_gamma <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  seed <span class="op">=</span> <span class="cn">NULL</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
@@ -117,6 +119,15 @@ units in the staggered case.</p></dd>
 strictly exogenous covariates. If supplied, an <code>N x T x K</code> array of
 covariates is generated (standard normal by default) and added to the
 outcome equation as <code>X_{it}'beta</code>. Default <code>NULL</code> (no covariates).</p></dd>
+
+
+<dt id="arg-feedback-gamma">feedback_gamma<a class="anchor" aria-label="anchor" href="#arg-feedback-gamma"></a></dt>
+<dd><p>Optional list with components
+<code>c(intercept, gamma_Y, gamma_X, sigma_eta)</code> of length 4 enabling a
+single-covariate feedback DGP per Botosaru-Liu (2026): instead of
+iid X, generate
+$$X_{it} = gamma_0 + gamma_Y Y_{i,t-1} + gamma_X X_{i,t-1} + \eta_{it}.$$
+Requires <code>length(beta) == 1</code>. Default <code>NULL</code> (no feedback).</p></dd>
 
 
 <dt id="arg-seed">seed<a class="anchor" aria-label="anchor" href="#arg-seed"></a></dt>

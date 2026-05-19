@@ -1,8 +1,9 @@
 pandoc: 3.8.3
 pkgdown: 2.2.0
 pkgdown_sha: ~
-articles: {}
-last_built: 2026-05-19T02:19Z
+articles:
+  illustrative: illustrative.html
+last_built: 2026-05-19T02:38Z
 urls:
   reference: https://xiangao.github.io/tvhte/reference
   article: https://xiangao.github.io/tvhte/articles
