@@ -105,6 +105,24 @@ outcomes accumulate the direct effect (<code>delta_{ij}</code>) plus the
 indirect effect (<code>X_it' beta</code>).</p>
     </div>
 
+    <div class="section level2">
+    <h2 id="ref-examples">Examples<a class="anchor" aria-label="anchor" href="#ref-examples"></a></h2>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="co"># Fit the model, fit the feedback, then simulate counterfactual paths</span></span></span>
+<span class="r-in"><span><span class="co"># under shifted treatment timing.</span></span></span>
+<span class="r-in"><span><span class="va">sim</span> <span class="op">&lt;-</span> <span class="fu"><a href="simulate_tvhte.html">simulate_tvhte</a></span><span class="op">(</span>N <span class="op">=</span> <span class="fl">300</span>, T <span class="op">=</span> <span class="fl">6</span>, t0 <span class="op">=</span> <span class="fl">3</span>, J <span class="op">=</span> <span class="fl">2</span>, beta <span class="op">=</span> <span class="fl">0.4</span>,</span></span>
+<span class="r-in"><span>                      feedback_gamma <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0.2</span>, <span class="fl">0.3</span>, <span class="fl">0.5</span>, <span class="fl">0.4</span><span class="op">)</span>, seed <span class="op">=</span> <span class="fl">1</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="va">fit</span> <span class="op">&lt;-</span> <span class="fu"><a href="tvhte.html">tvhte</a></span><span class="op">(</span><span class="va">sim</span><span class="op">$</span><span class="va">Y</span>, <span class="va">sim</span><span class="op">$</span><span class="va">Y0</span>, t0 <span class="op">=</span> <span class="va">sim</span><span class="op">$</span><span class="va">t0</span>, J <span class="op">=</span> <span class="va">sim</span><span class="op">$</span><span class="va">J</span>, X <span class="op">=</span> <span class="va">sim</span><span class="op">$</span><span class="va">X</span>,</span></span>
+<span class="r-in"><span>             compute_se <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="va">fb</span>  <span class="op">&lt;-</span> <span class="fu"><a href="fit_feedback.html">fit_feedback</a></span><span class="op">(</span><span class="va">sim</span><span class="op">$</span><span class="va">Y</span>, <span class="va">sim</span><span class="op">$</span><span class="va">Y0</span>, <span class="va">sim</span><span class="op">$</span><span class="va">X</span>, <span class="va">sim</span><span class="op">$</span><span class="va">X0</span><span class="op">)</span></span></span>
+<span class="r-in"><span></span></span>
+<span class="r-in"><span><span class="co"># Counterfactual: treatment delayed from t=3 to t=5</span></span></span>
+<span class="r-in"><span><span class="va">cf</span> <span class="op">&lt;-</span> <span class="fu">simulate_counterfactual</span><span class="op">(</span><span class="va">fit</span>, <span class="va">fb</span>, t0_star <span class="op">=</span> <span class="fl">5</span>,</span></span>
+<span class="r-in"><span>                               N_star <span class="op">=</span> <span class="fl">200</span>, seed <span class="op">=</span> <span class="fl">99</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/base/colSums.html" class="external-link">colMeans</a></span><span class="op">(</span><span class="va">cf</span><span class="op">$</span><span class="va">Y</span><span class="op">)</span>   <span class="co"># average counterfactual outcome path</span></span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [1] 0.1401096 0.2805138 0.3674985 0.3779429 1.6185435 1.9285446</span>
+<span class="r-in"><span></span></span>
+</code></pre></div>
+    </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
     </nav></aside></div>
 

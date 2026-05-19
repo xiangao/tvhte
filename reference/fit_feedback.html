@@ -110,6 +110,24 @@ Fit by pooled OLS across unit-time observations with <code>t &gt;= 2</code>.</p>
 AEA Papers and Proceedings 116: 70-74.</p>
     </div>
 
+    <div class="section level2">
+    <h2 id="ref-examples">Examples<a class="anchor" aria-label="anchor" href="#ref-examples"></a></h2>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="co"># Simulate from a model with covariate feedback, then estimate it back.</span></span></span>
+<span class="r-in"><span><span class="va">sim</span> <span class="op">&lt;-</span> <span class="fu"><a href="simulate_tvhte.html">simulate_tvhte</a></span><span class="op">(</span>N <span class="op">=</span> <span class="fl">300</span>, T <span class="op">=</span> <span class="fl">6</span>, t0 <span class="op">=</span> <span class="fl">3</span>, J <span class="op">=</span> <span class="fl">2</span>,</span></span>
+<span class="r-in"><span>                      beta <span class="op">=</span> <span class="fl">0.4</span>,</span></span>
+<span class="r-in"><span>                      feedback_gamma <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0.2</span>, <span class="fl">0.3</span>, <span class="fl">0.5</span>, <span class="fl">0.4</span><span class="op">)</span>,</span></span>
+<span class="r-in"><span>                      seed <span class="op">=</span> <span class="fl">51</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="va">fb</span> <span class="op">&lt;-</span> <span class="fu">fit_feedback</span><span class="op">(</span><span class="va">sim</span><span class="op">$</span><span class="va">Y</span>, <span class="va">sim</span><span class="op">$</span><span class="va">Y0</span>, <span class="va">sim</span><span class="op">$</span><span class="va">X</span>, <span class="va">sim</span><span class="op">$</span><span class="va">X0</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">fb</span><span class="op">)</span></span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Homogeneous covariate-feedback process (Botosaru-Liu 2026)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   X_it = 0.2049 + 0.3001 * Y_{i,t-1} + 0.4807 * X_{i,t-1} + eta_it</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   sigma_eta = 0.3965</span>
+<span class="r-in"><span><span class="va">fb</span><span class="op">$</span><span class="va">coef</span></span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> intercept   gamma_Y   gamma_X </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 0.2048683 0.3000519 0.4807463 </span>
+<span class="r-in"><span></span></span>
+</code></pre></div>
+    </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
     </nav></aside></div>
 

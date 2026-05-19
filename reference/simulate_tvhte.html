@@ -147,6 +147,40 @@ effects).</p>
 <code>0:J</code> (Phase 1 scope).</p>
     </div>
 
+    <div class="section level2">
+    <h2 id="ref-examples">Examples<a class="anchor" aria-label="anchor" href="#ref-examples"></a></h2>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="co"># Common adoption timing</span></span></span>
+<span class="r-in"><span><span class="va">sim</span> <span class="op">&lt;-</span> <span class="fu">simulate_tvhte</span><span class="op">(</span>N <span class="op">=</span> <span class="fl">200</span>, T <span class="op">=</span> <span class="fl">5</span>, t0 <span class="op">=</span> <span class="fl">3</span>, J <span class="op">=</span> <span class="fl">2</span>,</span></span>
+<span class="r-in"><span>                      rho_Y <span class="op">=</span> <span class="fl">0.4</span>, rho_delta <span class="op">=</span> <span class="fl">0.6</span>, seed <span class="op">=</span> <span class="fl">1</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/base/dim.html" class="external-link">dim</a></span><span class="op">(</span><span class="va">sim</span><span class="op">$</span><span class="va">Y</span><span class="op">)</span>; <span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="va">sim</span><span class="op">$</span><span class="va">Y0</span><span class="op">)</span></span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [1] 200   5</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [1] -1.08690882 -1.82608301  0.99528181 -0.01186178 -0.59962839 -0.17794799</span>
+<span class="r-in"><span></span></span>
+<span class="r-in"><span><span class="co"># Staggered adoption with Inf marking never-treated units</span></span></span>
+<span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed</a></span><span class="op">(</span><span class="fl">2</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="va">cohorts</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/sample.html" class="external-link">sample</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">3</span>, <span class="fl">5</span>, <span class="cn">Inf</span><span class="op">)</span>, <span class="fl">200</span>, replace <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="va">sim2</span> <span class="op">&lt;-</span> <span class="fu">simulate_tvhte</span><span class="op">(</span>N <span class="op">=</span> <span class="fl">200</span>, T <span class="op">=</span> <span class="fl">7</span>, t0 <span class="op">=</span> <span class="va">cohorts</span>, J <span class="op">=</span> <span class="fl">2</span>, seed <span class="op">=</span> <span class="fl">2</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/base/table.html" class="external-link">table</a></span><span class="op">(</span><span class="va">sim2</span><span class="op">$</span><span class="va">t0</span><span class="op">)</span></span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   3   5 Inf </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  71  69  60 </span>
+<span class="r-in"><span></span></span>
+<span class="r-in"><span><span class="co"># With a covariate that evolves endogenously (Botosaru-Liu 2026 feedback)</span></span></span>
+<span class="r-in"><span><span class="va">sim3</span> <span class="op">&lt;-</span> <span class="fu">simulate_tvhte</span><span class="op">(</span>N <span class="op">=</span> <span class="fl">200</span>, T <span class="op">=</span> <span class="fl">5</span>, t0 <span class="op">=</span> <span class="fl">3</span>, J <span class="op">=</span> <span class="fl">2</span>,</span></span>
+<span class="r-in"><span>                       beta <span class="op">=</span> <span class="fl">0.4</span>,</span></span>
+<span class="r-in"><span>                       feedback_gamma <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0.2</span>, <span class="fl">0.3</span>, <span class="fl">0.5</span>, <span class="fl">0.4</span><span class="op">)</span>,</span></span>
+<span class="r-in"><span>                       seed <span class="op">=</span> <span class="fl">3</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="va">sim3</span><span class="op">$</span><span class="va">X</span><span class="op">[</span>, , <span class="fl">1</span><span class="op">]</span><span class="op">)</span></span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>             [,1]        [,2]         [,3]       [,4]       [,5]</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [1,]  0.49404799 -0.40746550 -0.798322470  0.8795465  1.8417463</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [2,]  0.07982317  0.54977545  0.681280804  0.6314203  1.3619035</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [3,] -0.04297785  1.19607501  0.962776925  1.1901954  1.0792305</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [4,] -0.19603226 -0.63674908 -0.071879100  0.5684659  1.0673672</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [5,]  0.50722946  0.15350061  0.140027557 -0.2743175 -0.3239418</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [6,] -0.50478521  0.07483239  0.004695086  0.8352969  2.7102571</span>
+<span class="r-in"><span></span></span>
+</code></pre></div>
+    </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
     </nav></aside></div>
 

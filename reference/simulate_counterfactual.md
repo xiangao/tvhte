@@ -61,3 +61,21 @@ Gaussian prior; event-time effects evolve via the AR(1) on `delta_{ij}`;
 covariates evolve via the estimated feedback process; outcomes
 accumulate the direct effect (`delta_{ij}`) plus the indirect effect
 (`X_it' beta`).
+
+## Examples
+
+``` r
+# Fit the model, fit the feedback, then simulate counterfactual paths
+# under shifted treatment timing.
+sim <- simulate_tvhte(N = 300, T = 6, t0 = 3, J = 2, beta = 0.4,
+                      feedback_gamma = c(0.2, 0.3, 0.5, 0.4), seed = 1)
+fit <- tvhte(sim$Y, sim$Y0, t0 = sim$t0, J = sim$J, X = sim$X,
+             compute_se = FALSE)
+fb  <- fit_feedback(sim$Y, sim$Y0, sim$X, sim$X0)
+
+# Counterfactual: treatment delayed from t=3 to t=5
+cf <- simulate_counterfactual(fit, fb, t0_star = 5,
+                               N_star = 200, seed = 99)
+colMeans(cf$Y)   # average counterfactual outcome path
+#> [1] 0.1401096 0.2805138 0.3674985 0.3779429 1.6185435 1.9285446
+```

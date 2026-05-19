@@ -96,3 +96,48 @@ A list of class `"tvhte"` with:
 
 Botosaru, Irene and Laura Liu (2025). "Time-Varying Heterogeneous
 Treatment Effects in Event Studies." arXiv:2509.13698.
+
+## Examples
+
+``` r
+# Small panel, common adoption, no covariates
+sim <- simulate_tvhte(N = 300, T = 6, t0 = 3, J = 3,
+                      rho_Y = 0.5, rho_delta = 0.7, seed = 1)
+fit <- tvhte(sim$Y, sim$Y0, t0 = sim$t0, J = sim$J,
+             compute_se = FALSE)
+print(fit)
+#> Time-Varying Heterogeneous Treatment Effects (Botosaru-Liu 2025)
+#>   N = 300 units; T = 6 periods; t0 = 3; J = 3
+#>   log-likelihood = -2808.536   convergence = 0
+#> 
+#> Common parameters (theta):
+#>   rho_Y      = 0.5217
+#>   rho_delta  = 0.7198
+#>   sigma_U    = 1.033
+#>   sigma_eps  = 0.349
+#> Prior on lambda_i = (alpha, delta_0):
+#>   mu = (0.02566, 0.9811)
+#>   sd = (0.4622, 0.157),  cor = 0.9997
+#> 
+#> Mean posterior event-time effects (across units):
+#>   delta_0 = 0.9811   delta_1 = 0.7084   delta_2 = 0.5116   delta_3 = 0.3640
+
+# With a strictly-exogenous covariate
+sim2 <- simulate_tvhte(N = 300, T = 6, t0 = 3, J = 3,
+                       beta = 0.5, seed = 2)
+fit2 <- tvhte(sim2$Y, sim2$Y0, t0 = sim2$t0, J = sim2$J,
+              X = sim2$X, compute_se = FALSE)
+fit2$beta
+#> [1] 0.4770541
+
+# Staggered adoption with a never-treated comparison group
+set.seed(3)
+cohorts <- sample(c(3, 5, Inf), 400, replace = TRUE)
+sim3 <- simulate_tvhte(N = 400, T = 7, t0 = cohorts, J = 2, seed = 3)
+fit3 <- tvhte(sim3$Y, sim3$Y0, t0 = sim3$t0, J = sim3$J,
+              compute_se = FALSE)
+fit3$cohort_counts
+#> t0
+#>   3   5 Inf 
+#> 140 138 122 
+```

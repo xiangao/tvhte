@@ -61,3 +61,21 @@ across unit-time observations with `t >= 2`.
 
 Botosaru, Irene and Laura Liu (2026). "Event Studies with Feedback." AEA
 Papers and Proceedings 116: 70-74.
+
+## Examples
+
+``` r
+# Simulate from a model with covariate feedback, then estimate it back.
+sim <- simulate_tvhte(N = 300, T = 6, t0 = 3, J = 2,
+                      beta = 0.4,
+                      feedback_gamma = c(0.2, 0.3, 0.5, 0.4),
+                      seed = 51)
+fb <- fit_feedback(sim$Y, sim$Y0, sim$X, sim$X0)
+print(fb)
+#> Homogeneous covariate-feedback process (Botosaru-Liu 2026)
+#>   X_it = 0.2049 + 0.3001 * Y_{i,t-1} + 0.4807 * X_{i,t-1} + eta_it
+#>   sigma_eta = 0.3965
+fb$coef
+#> intercept   gamma_Y   gamma_X 
+#> 0.2048683 0.3000519 0.4807463 
+```
