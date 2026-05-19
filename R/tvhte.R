@@ -45,7 +45,8 @@
 #'
 #' @export
 tvhte <- function(Y, Y0, t0, J, X = NULL, init = NULL,
-                  control = list(maxit = 500)) {
+                  control = list(maxit = 500),
+                  compute_se = TRUE) {
 
   if (!is.matrix(Y)) stop("tvhte: Y must be a matrix (N x T)")
   N <- nrow(Y); T <- ncol(Y)
@@ -147,8 +148,54 @@ tvhte <- function(Y, Y0, t0, J, X = NULL, init = NULL,
     -ll
   }
 
-  fit <- optim(par_vec, nll, method = "BFGS", control = control)
+  fit <- optim(par_vec, nll, method = "BFGS", control = control,
+               hessian = compute_se)
   par <- unpack(fit$par)
+
+  # --- naive QMLE standard errors via inverse Hessian ----------------------
+  # Valid under the Gaussian working assumption on lambda; a proper
+  # sandwich SE under misspecification is left for a later phase.
+  vcov_raw <- if (compute_se)
+    tryCatch(solve(fit$hessian), error = function(e) NULL) else NULL
+
+  # Delta-method conversion to natural scales. Order of par_vec:
+  #   1: rho_Y          = tanh(p[1])      -> d/dp = 1 - tanh^2(p)
+  #   2: rho_delta      = tanh(p[2])
+  #   3: sigma_U2       = exp(p[3])
+  #   4: sigma_eps2     = exp(p[4])
+  #   5: mu_alpha       = p[5]
+  #   6: mu_delta0      = p[6]
+  #   7: sigma_alpha2   = exp(p[7])
+  #   8: sigma_delta0_2 = exp(p[8])
+  #   9: z_cor          = tanh(p[9])  (then cov = cor * sqrt(s_a * s_d))
+  #   10..(9+K): beta   = identity
+  se_list <- NULL
+  if (!is.null(vcov_raw) && all(is.finite(vcov_raw)) &&
+      all(diag(vcov_raw) > 0)) {
+    p <- fit$par
+    grad <- numeric(length(p))
+    grad[1] <- 1 - tanh(p[1])^2
+    grad[2] <- 1 - tanh(p[2])^2
+    grad[3] <- exp(p[3])
+    grad[4] <- exp(p[4])
+    grad[5] <- 1
+    grad[6] <- 1
+    grad[7] <- exp(p[7])
+    grad[8] <- exp(p[8])
+    grad[9] <- 1 - tanh(p[9])^2     # SE for the correlation itself
+    if (K > 0) grad[10:(9 + K)] <- 1
+    se_natural <- sqrt(diag(vcov_raw)) * abs(grad)
+    se_list <- list(rho_Y      = se_natural[1],
+                    rho_delta  = se_natural[2],
+                    sigma_U2   = se_natural[3],
+                    sigma_eps2 = se_natural[4],
+                    mu_alpha   = se_natural[5],
+                    mu_delta0  = se_natural[6],
+                    sigma_alpha2   = se_natural[7],
+                    sigma_delta0_2 = se_natural[8],
+                    cor_alpha_delta = se_natural[9],
+                    beta = if (K > 0) se_natural[10:(9 + K)] else numeric(0))
+  }
 
   # --- step 2: posterior means of lambda_i ---------------------------------
   ds_list <- build_ds(par$theta)
@@ -203,10 +250,12 @@ tvhte <- function(Y, Y0, t0, J, X = NULL, init = NULL,
 
   structure(
     list(theta = par$theta, prior = par$prior, beta = par$beta,
+         se = se_list,
          loglik = -fit$value, convergence = fit$convergence,
          lambda_hat = lambda_hat, delta_path = delta_path,
          t0 = t0, J = J, N = N, T = T, K = K,
          cohort_counts = table(t0),
+         vcov = vcov_raw,
          call = match.call()),
     class = "tvhte"
   )
@@ -225,9 +274,15 @@ print.tvhte <- function(x, digits = 4, ...) {
               x$N, x$T, t0_str, x$J))
   cat(sprintf("  log-likelihood = %.3f   convergence = %d\n\n",
               x$loglik, x$convergence))
+  sefmt <- function(v, key) {
+    if (is.null(x$se) || is.null(x$se[[key]])) return("")
+    sprintf("   (SE %s)", format(x$se[[key]], digits = digits))
+  }
   cat("Common parameters (theta):\n")
-  cat(sprintf("  rho_Y      = %s\n", format(x$theta$rho_Y, digits = digits)))
-  cat(sprintf("  rho_delta  = %s\n", format(x$theta$rho_delta, digits = digits)))
+  cat(sprintf("  rho_Y      = %s%s\n",
+              format(x$theta$rho_Y, digits = digits), sefmt(NULL, "rho_Y")))
+  cat(sprintf("  rho_delta  = %s%s\n",
+              format(x$theta$rho_delta, digits = digits), sefmt(NULL, "rho_delta")))
   cat(sprintf("  sigma_U    = %s\n", format(sqrt(x$theta$sigma_U2), digits = digits)))
   cat(sprintf("  sigma_eps  = %s\n", format(sqrt(x$theta$sigma_eps2), digits = digits)))
   cat("Prior on lambda_i = (alpha, delta_0):\n")
@@ -242,10 +297,12 @@ print.tvhte <- function(x, digits = 4, ...) {
                      digits = digits)))
   if (length(x$beta) > 0) {
     cat(sprintf("\nCovariate coefficients (beta):\n"))
-    cat(sprintf("  %s\n",
-                paste0("beta[", seq_along(x$beta), "] = ",
-                       format(x$beta, digits = digits),
-                       collapse = "   ")))
+    se_beta <- if (!is.null(x$se)) x$se$beta else rep(NA_real_, length(x$beta))
+    for (k in seq_along(x$beta)) {
+      cat(sprintf("  beta[%d] = %s   (SE %s)\n", k,
+                  format(x$beta[k], digits = digits),
+                  format(se_beta[k], digits = digits)))
+    }
   }
   cat(sprintf("\nMean posterior event-time effects (across units):\n"))
   cat(sprintf("  %s\n", paste(colnames(x$delta_path),
