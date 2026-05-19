@@ -12,9 +12,18 @@ reference:
   - title: Main estimator
     contents:
       - tvhte
+  - title: Covariate feedback (Botosaru-Liu 2026)
+    contents:
+      - fit_feedback
+      - simulate_counterfactual
   - title: Simulation
     contents:
       - simulate_tvhte
+
+articles:
+  - title: Vignettes
+    contents:
+      - illustrative
 
 home:
   links:
