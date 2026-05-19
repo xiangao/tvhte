@@ -26,6 +26,12 @@
 #'   strictly exogenous covariates. If supplied, an `N x T x K` array of
 #'   covariates is generated (standard normal by default) and added to the
 #'   outcome equation as `X_{it}'beta`. Default `NULL` (no covariates).
+#' @param feedback_gamma Optional list with components
+#'   `c(intercept, gamma_Y, gamma_X, sigma_eta)` of length 4 enabling a
+#'   single-covariate feedback DGP per Botosaru-Liu (2026): instead of
+#'   iid X, generate
+#'   \deqn{X_{it} = gamma_0 + gamma_Y Y_{i,t-1} + gamma_X X_{i,t-1} + \eta_{it}.}
+#'   Requires `length(beta) == 1`. Default `NULL` (no feedback).
 #' @param seed Optional integer seed.
 #'
 #' @return A list with `Y` (an N x T matrix), `Y0` (length-N baseline
@@ -42,6 +48,7 @@ simulate_tvhte <- function(N = 500, T = 6, t0 = 3, J = 3,
                            cor_alpha_delta = 0,
                            Y0_mean = 0, Y0_sd = 1,
                            beta = NULL,
+                           feedback_gamma = NULL,
                            seed = NULL) {
   if (!is.null(seed)) set.seed(seed)
   stopifnot(J >= 0)
@@ -72,18 +79,37 @@ simulate_tvhte <- function(N = 500, T = 6, t0 = 3, J = 3,
   # Draw Y_{i,0}
   Y0 <- rnorm(N, mean = Y0_mean, sd = Y0_sd)
 
-  # Covariates (optional)
+  # Covariates (optional). With feedback_gamma, X is endogenous to Y/X
+  # history -- generated jointly with Y in the time loop below. Without
+  # feedback, X is iid standard normal (drawn upfront).
   X <- NULL
+  K <- 0L
   if (!is.null(beta)) {
     K <- length(beta)
-    X <- array(rnorm(N * T * K), dim = c(N, T, K))
+    if (!is.null(feedback_gamma) && K != 1L)
+      stop("simulate_tvhte: feedback_gamma requires K == 1 (Phase 5 scope)")
+    if (is.null(feedback_gamma))
+      X <- array(rnorm(N * T * K), dim = c(N, T, K))
+    else
+      X <- array(NA_real_, dim = c(N, T, K))
   }
+  X0 <- if (!is.null(feedback_gamma)) rnorm(N) else NULL
 
-  # Iterate forward; treatment now per-unit (each unit's own t0_i)
+  # Iterate forward; treatment per-unit; X jointly with Y under feedback
   Y <- matrix(NA_real_, N, T)
   for (t in 1:T) {
     Y_lag <- if (t == 1) Y0 else Y[, t - 1]
-    j_i <- t - t0                                # vector of event times
+
+    # Draw X_t under feedback (depends on Y_lag and X_lag)
+    if (!is.null(feedback_gamma)) {
+      X_lag <- if (t == 1) X0 else X[, t - 1, 1]
+      X[, t, 1] <- feedback_gamma[1] +
+                   feedback_gamma[2] * Y_lag +
+                   feedback_gamma[3] * X_lag +
+                   rnorm(N, sd = feedback_gamma[4])
+    }
+
+    j_i <- t - t0
     in_window <- is.finite(j_i) & j_i >= 0 & j_i <= J
     trt <- numeric(N)
     if (any(in_window))
@@ -93,12 +119,13 @@ simulate_tvhte <- function(N = 500, T = 6, t0 = 3, J = 3,
     Y[, t] <- rho_Y * Y_lag + alpha + trt + x_eff + rnorm(N, sd = sigma_U)
   }
 
-  list(Y = Y, Y0 = Y0, X = X, t0 = t0, J = J,
+  list(Y = Y, Y0 = Y0, X = X, X0 = X0, t0 = t0, J = J,
        lambda = lambda, delta = delta,
        params = list(rho_Y = rho_Y, rho_delta = rho_delta,
                      sigma_U = sigma_U, sigma_eps = sigma_eps,
                      mu_alpha = mu_alpha, mu_delta0 = mu_delta0,
                      sigma_alpha = sigma_alpha, sigma_delta0 = sigma_delta0,
                      cor_alpha_delta = cor_alpha_delta,
-                     beta = beta))
+                     beta = beta,
+                     feedback_gamma = feedback_gamma))
 }

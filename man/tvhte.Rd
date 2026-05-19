@@ -4,7 +4,16 @@
 \alias{tvhte}
 \title{Two-step TV-HTE estimator (Botosaru and Liu 2025)}
 \usage{
-tvhte(Y, Y0, t0, J, X = NULL, init = NULL, control = list(maxit = 500))
+tvhte(
+  Y,
+  Y0,
+  t0,
+  J,
+  X = NULL,
+  init = NULL,
+  control = list(maxit = 500),
+  compute_se = TRUE
+)
 }
 \arguments{
 \item{Y}{N x T matrix of post-baseline outcomes.}

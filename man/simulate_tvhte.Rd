@@ -21,6 +21,7 @@ simulate_tvhte(
   Y0_mean = 0,
   Y0_sd = 1,
   beta = NULL,
+  feedback_gamma = NULL,
   seed = NULL
 )
 }
@@ -51,6 +52,13 @@ units in the staggered case.}
 strictly exogenous covariates. If supplied, an \verb{N x T x K} array of
 covariates is generated (standard normal by default) and added to the
 outcome equation as \verb{X_\{it\}'beta}. Default \code{NULL} (no covariates).}
+
+\item{feedback_gamma}{Optional list with components
+\code{c(intercept, gamma_Y, gamma_X, sigma_eta)} of length 4 enabling a
+single-covariate feedback DGP per Botosaru-Liu (2026): instead of
+iid X, generate
+\deqn{X_{it} = gamma_0 + gamma_Y Y_{i,t-1} + gamma_X X_{i,t-1} + \eta_{it}.}
+Requires \code{length(beta) == 1}. Default \code{NULL} (no feedback).}
 
 \item{seed}{Optional integer seed.}
 }
