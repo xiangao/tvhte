@@ -10,13 +10,22 @@ navbar:
 
 reference:
   - title: Main estimator
+    desc: >
+      Two-step QMLE + Tweedie/Gaussian empirical-Bayes estimator
+      (Botosaru-Liu 2025). Click through for runnable examples.
     contents:
       - tvhte
   - title: Covariate feedback (Botosaru-Liu 2026)
+    desc: >
+      Homogeneous-feedback factorisation and counterfactual
+      decomposition into direct vs indirect components.
     contents:
       - fit_feedback
       - simulate_counterfactual
   - title: Simulation
+    desc: >
+      Data generator covering vanilla, staggered (with never-treated),
+      and feedback DGPs. Click through for example calls.
     contents:
       - simulate_tvhte
 
