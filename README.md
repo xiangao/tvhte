@@ -2,11 +2,15 @@
 
 [![pkgdown](https://img.shields.io/badge/pkgdown-site-blue.svg)](https://xiangao.github.io/tvhte/)
 
-Time-varying heterogeneous treatment effects in event studies, following Botosaru & Liu (2025, 2026).
+`tvhte` estimates time-varying heterogeneous treatment effects in event
+studies, following Botosaru and Liu (2025, 2026).
 
 ## What this package does
 
-Standard event-study regressions (TWFE with event-time dummies) implicitly assume that the unit and time fixed effects absorb all serial correlation in the residual. When outcomes are genuinely persistent — earnings, employment, consumption, anything with habit or adjustment costs — the event-time dummies pick up persistence on top of the causal effect, producing **spurious pre-trends and biased post-treatment estimates**.
+Standard event-study regressions with unit and time fixed effects leave little
+room for residual serial dependence. When outcomes are persistent, the
+event-time dummies can pick up persistence as well as the treatment effect.
+That can look like pre-trends or biased post-treatment effects.
 
 `tvhte` implements Botosaru & Liu's two-step semiparametric estimator:
 
@@ -17,7 +21,8 @@ The dimensionality reduction comes from imposing an AR(1) on event-time effects,
 
 ## Status
 
-This is **Phase 1** (linear-Gaussian, common adoption timing, no covariates). Forthcoming:
+The current implementation is still staged. The linear-Gaussian common-adoption
+case is the most mature part. The planned pieces are:
 
 - Phase 2: strictly exogenous covariates `X_{it}'β`.
 - Phase 3: staggered adoption with cohort-specific conditioning.
