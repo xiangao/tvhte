@@ -50,11 +50,11 @@
 <div class="page-header"><h1 id="tvhte">tvhte<a class="anchor" aria-label="anchor" href="#tvhte"></a>
 </h1></div>
 <p><a href="https://xiangao.github.io/tvhte/"><img src="https://img.shields.io/badge/pkgdown-site-blue.svg" alt="pkgdown"></a></p>
-<p>Time-varying heterogeneous treatment effects in event studies, following Botosaru &amp; Liu (2025, 2026).</p>
+<p><code>tvhte</code> estimates time-varying heterogeneous treatment effects in event studies, following Botosaru and Liu (2025, 2026).</p>
 <div class="section level2">
 <h2 id="what-this-package-does">What this package does<a class="anchor" aria-label="anchor" href="#what-this-package-does"></a>
 </h2>
-<p>Standard event-study regressions (TWFE with event-time dummies) implicitly assume that the unit and time fixed effects absorb all serial correlation in the residual. When outcomes are genuinely persistent — earnings, employment, consumption, anything with habit or adjustment costs — the event-time dummies pick up persistence on top of the causal effect, producing <strong>spurious pre-trends and biased post-treatment estimates</strong>.</p>
+<p>Standard event-study regressions with unit and time fixed effects leave little room for residual serial dependence. When outcomes are persistent, the event-time dummies can pick up persistence as well as the treatment effect. That can look like pre-trends or biased post-treatment effects.</p>
 <p><code>tvhte</code> implements Botosaru &amp; Liu’s two-step semiparametric estimator:</p>
 <ol style="list-style-type: decimal">
 <li>
@@ -67,7 +67,7 @@
 <div class="section level2">
 <h2 id="status">Status<a class="anchor" aria-label="anchor" href="#status"></a>
 </h2>
-<p>This is <strong>Phase 1</strong> (linear-Gaussian, common adoption timing, no covariates). Forthcoming:</p>
+<p>The current implementation is still staged. The linear-Gaussian common-adoption case is the most mature part. The planned pieces are:</p>
 <ul>
 <li>Phase 2: strictly exogenous covariates <code>X_{it}'β</code>.</li>
 <li>Phase 3: staggered adoption with cohort-specific conditioning.</li>
