@@ -1,13 +1,11 @@
 # Illustrative TV-HTE event study (with feedback decomposition)
 
-This vignette walks end-to-end through the `tvhte` API on a synthetic
-panel that mimics what an applied event-study dataset might look like —
-persistent outcomes, unit-level heterogeneity in dynamic responses,
-staggered adoption, and a policy-reactive covariate that adjusts in
-response to past outcomes. We fit the structural TV-HTE model (Botosaru
-and Liu 2025), the homogeneous feedback model (Botosaru and Liu 2026),
-and use both to decompose dynamic event-study responses into direct vs
-indirect components.
+This vignette uses a synthetic panel to show the `tvhte` workflow. The
+panel has persistent outcomes, heterogeneous dynamic responses,
+staggered adoption, and a covariate that responds to past outcomes. We
+fit the structural TV-HTE model from Botosaru and Liu (2025), then the
+homogeneous-feedback model from Botosaru and Liu (2026), and use the two
+fitted objects to separate direct and indirect dynamic responses.
 
 The DGP here is synthetic only because the BL 2025 county-unemployment
 analysis (their Section 6) does not ship replication data. The workflow
