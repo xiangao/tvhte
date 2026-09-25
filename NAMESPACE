@@ -6,3 +6,11 @@ export(fit_feedback)
 export(simulate_counterfactual)
 export(simulate_tvhte)
 export(tvhte)
+importFrom(stats,
+  coef,
+  lm,
+  optim,
+  residuals,
+  rnorm,
+  var
+)

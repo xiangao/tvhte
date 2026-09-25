@@ -25,6 +25,14 @@
 #' @param init Optional named list of starting values for the optimizer
 #'   (overrides any of the defaults computed from the data).
 #' @param control Passed to `optim`.
+#' @param compute_se Logical; if `TRUE` (the default) the Hessian is returned by
+#'   `optim` and inverted to give standard errors. These are **model-based**
+#'   standard errors, valid only when the Gaussian working prior on `lambda_i` is
+#'   correctly specified. The point estimator is a QMLE and stays consistent when
+#'   that prior is misspecified, but consistency of the point estimator does not
+#'   make the inverse-Hessian covariance valid. A sandwich covariance that is
+#'   robust to that misspecification is not implemented. Treat the reported
+#'   intervals accordingly.
 #'
 #' @return A list of class `"tvhte"` with:
 #' \describe{
@@ -37,6 +45,9 @@
 #'   \item{delta_path}{N x (J+1) matrix of posterior-mean event-time
 #'     trajectories. Column `j+1` is `E[delta_{i,j} | data]`.}
 #'   \item{convergence}{`optim`'s return code; 0 means converged.}
+#'   \item{se}{Model-based standard errors from the inverse Hessian, or `NULL`
+#'     when `compute_se = FALSE`. Valid only under a correctly specified Gaussian
+#'     working prior; see `compute_se`.}
 #' }
 #'
 #' @references
@@ -175,9 +186,11 @@ tvhte <- function(Y, Y0, t0, J, X = NULL, init = NULL,
                hessian = compute_se)
   par <- unpack(fit$par)
 
-  # --- naive QMLE standard errors via inverse Hessian ----------------------
-  # Valid under the Gaussian working assumption on lambda; a proper
-  # sandwich SE under misspecification is left for a later phase.
+  # --- model-based QMLE standard errors via inverse Hessian ----------------
+  # Valid only under the Gaussian working assumption on lambda. The point
+  # estimator is consistent when that prior is misspecified; the inverse-Hessian
+  # covariance is not. A sandwich SE robust to that misspecification is not
+  # implemented, and the documentation says so rather than implying otherwise.
   vcov_raw <- if (compute_se)
     tryCatch(solve(fit$hessian), error = function(e) NULL) else NULL
 

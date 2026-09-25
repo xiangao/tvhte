@@ -34,6 +34,15 @@ estimates \code{beta} jointly with the other parameters.}
 (overrides any of the defaults computed from the data).}
 
 \item{control}{Passed to \code{optim}.}
+
+\item{compute_se}{Logical; if \code{TRUE} (the default) the Hessian is returned by
+\code{optim} and inverted to give standard errors. These are \strong{model-based}
+standard errors, valid only when the Gaussian working prior on \code{lambda_i} is
+correctly specified. The point estimator is a QMLE and stays consistent when
+that prior is misspecified, but consistency of the point estimator does not
+make the inverse-Hessian covariance valid. A sandwich covariance that is
+robust to that misspecification is not implemented. Treat the reported
+intervals accordingly.}
 }
 \value{
 A list of class \code{"tvhte"} with:
@@ -47,6 +56,9 @@ A list of class \code{"tvhte"} with:
 \item{delta_path}{N x (J+1) matrix of posterior-mean event-time
 trajectories. Column \code{j+1} is \verb{E[delta_\{i,j\} | data]}.}
 \item{convergence}{\code{optim}'s return code; 0 means converged.}
+\item{se}{Model-based standard errors from the inverse Hessian, or \code{NULL}
+when \code{compute_se = FALSE}. Valid only under a correctly specified Gaussian
+working prior; see \code{compute_se}.}
 }
 }
 \description{

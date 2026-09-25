@@ -65,7 +65,7 @@ Requires \code{length(beta) == 1}. Default \code{NULL} (no feedback).}
 \value{
 A list with \code{Y} (an N x T matrix), \code{Y0} (length-N baseline
 vector), \code{t0} (scalar), \code{J}, \code{lambda} (N x 2 matrix of true alpha
-and delta_{i0}), and \code{delta} (N x (J+1) matrix of true event-time
+and \verb{delta_\{i0\}}), and \code{delta} (N x (J+1) matrix of true event-time
 effects).
 }
 \description{

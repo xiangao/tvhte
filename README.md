@@ -14,7 +14,7 @@ That can look like pre-trends or biased post-treatment effects.
 
 `tvhte` implements Botosaru & Liu's two-step semiparametric estimator:
 
-1. **Marginal-likelihood QMLE** for common parameters `(ρ_Y, ρ_δ, σ_U, σ_ε)` and the latent prior, integrating out unit-level random coefficients `(α_i, δ_{i0})` under a Gaussian working assumption. Consistent under misspecification of the prior.
+1. **Marginal-likelihood QMLE** for common parameters `(ρ_Y, ρ_δ, σ_U, σ_ε)` and the latent prior, integrating out unit-level random coefficients `(α_i, δ_{i0})` under a Gaussian working assumption. The **point estimator** is consistent when that working prior is misspecified. The reported **standard errors** are not: they come from the inverse Hessian and are valid only when the Gaussian working prior is correct. A sandwich covariance robust to misspecification is not implemented.
 2. **Tweedie / Gaussian-conjugate empirical Bayes** for posterior means of the unit-specific treatment trajectories `{δ_{i,j}}`, achieving asymptotic ratio optimality.
 
 The dimensionality reduction comes from imposing an AR(1) on event-time effects, `δ_{ij} = ρ_δ δ_{i,j-1} + ε_{ij}`, with `δ_{i0}` free.

@@ -36,7 +36,7 @@
 #'
 #' @return A list with `Y` (an N x T matrix), `Y0` (length-N baseline
 #'   vector), `t0` (scalar), `J`, `lambda` (N x 2 matrix of true alpha
-#'   and delta_{i0}), and `delta` (N x (J+1) matrix of true event-time
+#'   and `delta_{i0}`), and `delta` (N x (J+1) matrix of true event-time
 #'   effects).
 #'
 #' @examples
