@@ -58,7 +58,7 @@
 <p><code>tvhte</code> implements Botosaru &amp; Liu’s two-step semiparametric estimator:</p>
 <ol style="list-style-type: decimal">
 <li>
-<strong>Marginal-likelihood QMLE</strong> for common parameters <code>(ρ_Y, ρ_δ, σ_U, σ_ε)</code> and the latent prior, integrating out unit-level random coefficients <code>(α_i, δ_{i0})</code> under a Gaussian working assumption. Consistent under misspecification of the prior.</li>
+<strong>Marginal-likelihood QMLE</strong> for common parameters <code>(ρ_Y, ρ_δ, σ_U, σ_ε)</code> and the latent prior, integrating out unit-level random coefficients <code>(α_i, δ_{i0})</code> under a Gaussian working assumption. The <strong>point estimator</strong> is consistent when that working prior is misspecified. The reported <strong>standard errors</strong> are not: they come from the inverse Hessian and are valid only when the Gaussian working prior is correct. A sandwich covariance robust to misspecification is not implemented.</li>
 <li>
 <strong>Tweedie / Gaussian-conjugate empirical Bayes</strong> for posterior means of the unit-specific treatment trajectories <code>{δ_{i,j}}</code>, achieving asymptotic ratio optimality.</li>
 </ol>
@@ -209,7 +209,7 @@
 </div>
 
 <div class="pkgdown-footer-right">
-  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.2.0.</p>
+  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.2.1.</p>
 </div>
 
     </footer>

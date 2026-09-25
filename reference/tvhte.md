@@ -63,6 +63,17 @@ tvhte(
 
   Passed to `optim`.
 
+- compute_se:
+
+  Logical; if `TRUE` (the default) the Hessian is returned by `optim`
+  and inverted to give standard errors. These are **model-based**
+  standard errors, valid only when the Gaussian working prior on
+  `lambda_i` is correctly specified. The point estimator is a QMLE and
+  stays consistent when that prior is misspecified, but consistency of
+  the point estimator does not make the inverse-Hessian covariance
+  valid. A sandwich covariance that is robust to that misspecification
+  is not implemented. Treat the reported intervals accordingly.
+
 ## Value
 
 A list of class `"tvhte"` with:
@@ -91,6 +102,12 @@ A list of class `"tvhte"` with:
 - convergence:
 
   `optim`'s return code; 0 means converged.
+
+- se:
+
+  Model-based standard errors from the inverse Hessian, or `NULL` when
+  `compute_se = FALSE`. Valid only under a correctly specified Gaussian
+  working prior; see `compute_se`.
 
 ## References
 

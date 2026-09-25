@@ -120,6 +120,17 @@ estimates <code>beta</code> jointly with the other parameters.</p></dd>
 <dt id="arg-control">control<a class="anchor" aria-label="anchor" href="#arg-control"></a></dt>
 <dd><p>Passed to <code>optim</code>.</p></dd>
 
+
+<dt id="arg-compute-se">compute_se<a class="anchor" aria-label="anchor" href="#arg-compute-se"></a></dt>
+<dd><p>Logical; if <code>TRUE</code> (the default) the Hessian is returned by
+<code>optim</code> and inverted to give standard errors. These are <strong>model-based</strong>
+standard errors, valid only when the Gaussian working prior on <code>lambda_i</code> is
+correctly specified. The point estimator is a QMLE and stays consistent when
+that prior is misspecified, but consistency of the point estimator does not
+make the inverse-Hessian covariance valid. A sandwich covariance that is
+robust to that misspecification is not implemented. Treat the reported
+intervals accordingly.</p></dd>
+
 </dl></div>
     <div class="section level2">
     <h2 id="value">Value<a class="anchor" aria-label="anchor" href="#value"></a></h2>
@@ -143,6 +154,11 @@ trajectories. Column <code>j+1</code> is <code>E[delta_{i,j} | data]</code>.</p>
 
 <dt>convergence</dt>
 <dd><p><code>optim</code>'s return code; 0 means converged.</p></dd>
+
+<dt>se</dt>
+<dd><p>Model-based standard errors from the inverse Hessian, or <code>NULL</code>
+when <code>compute_se = FALSE</code>. Valid only under a correctly specified Gaussian
+working prior; see <code>compute_se</code>.</p></dd>
 
 
 </dl></div>
@@ -206,7 +222,7 @@ Treatment Effects in Event Studies." arXiv:2509.13698.</p>
 </div>
 
 <div class="pkgdown-footer-right">
-  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.2.0.</p>
+  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.2.1.</p>
 </div>
 
     </footer></div>
